@@ -39,6 +39,17 @@ export async function getShortUrl(req, res) {
     if (result.rowCount === 0) {
       return res.sendStatus(404);
     }
+    const { rows } = await connection.query(
+      'SELECT "visitCount" FROM shortUrls WHERE "shortUrl"= $1',
+      [shortUrl]
+    );
+
+    const count = rows[0].visitCount++;
+
+    await connection.query(
+      'UPDATE shorturls set "visitCount"=$1 WHERE "shortUrl" = $2',
+      [count, shortUrl]
+    );
 
     res.status(200).send(result.rows[0]);
   } catch (error) {

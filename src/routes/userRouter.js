@@ -5,6 +5,7 @@ import { validateTokenMiddleware } from "../middlewares/validateTokenMiddleware.
 import userSchema from "../schemas/userSchema.js";
 
 const userRouter = Router();
-userRouter.post('/users', validateSchemaMiddleware(userSchema), createUser);
-userRouter.get('/users', validateTokenMiddleware, getUser);
+userRouter.post("/users", validateSchemaMiddleware(userSchema), createUser);
+userRouter.get("/users", validateTokenMiddleware, getUser);
+userRouter.get("/users/:id", getInfo);
 export default userRouter;
