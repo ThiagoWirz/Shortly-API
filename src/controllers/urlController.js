@@ -46,3 +46,30 @@ export async function getShortUrl(req, res) {
     res.sendStatus(500);
   }
 }
+
+export async function deleteUrl(req, res) {
+  const { id } = req.params;
+  const authorization = req.headers.authorization;
+  const token = authorization?.replace("Bearer ", "");
+
+  try {
+    const users = await connection.query(
+      'SELECT "userId" FROM sessions WHERE token = $1',
+      [token]
+    );
+    const { userId } = users.rows[0];
+    const url = await connection.query(
+      'SELECT id FROM shortUrls WHERE id=$1 AND "userId"=$2',
+      [id, userId]
+    );
+    if (url.rowCount === 0) {
+      return res.sendStatus(401);
+    }
+
+    await connection.query("DELETE FROM shortUrls WHERE id=$1", [id]);
+    res.sendStatus(204);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+}
