@@ -31,25 +31,25 @@ export async function getShortUrl(req, res) {
   const { shortUrl } = req.params;
 
   try {
-    const result = await connection.query(
-      'SELECT s.id, s."shortUrl", s.url FROM shortUrls s WHERE "shortUrl"= $1',
-      [shortUrl]
-    );
+    const result = await db.query("SELECT * FROM shortUrls WHERE shortUrl=$1", [
+      shortUrl,
+    ]);
 
     if (result.rowCount === 0) {
       return res.sendStatus(404);
     }
-    const { rows } = await connection.query(
-      'SELECT "visitCount" FROM shortUrls WHERE "shortUrl"= $1',
-      [shortUrl]
-    );
 
-    const count = rows[0].visitCount++;
+    let count = result.rows[0].visitCount;
 
-    await connection.query(
-      'UPDATE shorturls set "visitCount"=$1 WHERE "shortUrl" = $2',
-      [count, shortUrl]
-    );
+    count++;
+
+    await db.query('UPDATE shortUrls SET "visitCount"=$1 WHERE shortUrl=$2', [
+      count,
+      shortUrl,
+    ]);
+
+    delete result.rows[0].userId;
+    delete result.rows[0].visitCount;
 
     res.status(200).send(result.rows[0]);
   } catch (error) {
