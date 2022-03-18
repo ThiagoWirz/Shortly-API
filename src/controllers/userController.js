@@ -42,17 +42,47 @@ export async function getUser(req, res) {
   }
 }
 
-export async function getInfo(req, res) {
+export async function getUserInfo(req, res) {
   const { id } = req.params;
 
   try {
-    const user = await connection.query("SELECT * FROM users WHERE id=$1", [
-      id,
-    ]);
+    const { rows: user } = await connection.query(
+      `
+    SELECT 
+      u.id,
+      u.name,
+      s.id AS "shortUrlId",
+      s."shortUrl",
+      s.url,
+      s."visitCount"
+    FROM
+      users u
+    JOIN shortUrls s ON s."userId"=u.id
+    WHERE u.id=$1`,
+      [id]
+    );
 
-    if (user.rowCount === 0) {
+    if (user.length === 0) {
       return res.sendStatus(404);
     }
+
+    const response = {
+      id: user[0].id,
+      name: user[0].name,
+      visitCount: 0,
+      shortenedUrls: [],
+    };
+    const shortenedUrls = user.map((el) => {
+      response.visitCount += el.visitCount;
+      return {
+        id: el.shortUrlId,
+        shortUrl: el.shortUrl,
+        url: el.url,
+        visitCount: el.visitCount,
+      };
+    });
+
+    response.shortenedUrls = shortenedUrls;
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
