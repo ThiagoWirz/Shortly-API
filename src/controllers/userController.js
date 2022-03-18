@@ -57,7 +57,7 @@ export async function getUserInfo(req, res) {
       s."visitCount"
     FROM
       users u
-    JOIN shortUrls s ON s."userId"=u.id
+    LEFT JOIN shortUrls s ON s."userId"=u.id
     WHERE u.id=$1`,
       [id]
     );
