@@ -88,3 +88,25 @@ export async function getUserInfo(req, res) {
     res.sendStatus(500);
   }
 }
+
+export async function getRanking(req, res) {
+  try {
+    const { rows: users } = await db.query(`
+			SELECT
+				users.id,
+				users.name,
+				COUNT(s."userId") AS "linksCount",
+				COALESCE(SUM(s."visitCount"), 0) AS "visitCount"
+			FROM users
+				LEFT JOIN shortUrls s ON users.id=s."userId"
+			GROUP BY users.id
+      ORDER BY "visitCount" DESC
+			LIMIT 10
+		`);
+
+    res.send(users);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(500);
+  }
+}
